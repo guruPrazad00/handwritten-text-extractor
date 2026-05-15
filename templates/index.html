@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <title>Text Extractor </title>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: linear-gradient(135deg, #090a0f 0%, #151828 100%);
+            color: #ffffff;
+            padding: 40px;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Subtle glowing orb background effect */
+        body::before {
+            content: '';
+            position: absolute;
+            top: -10%;
+            left: 20%;
+            width: 40vw;
+            height: 40vw;
+            background: radial-gradient(circle, rgba(108, 99, 255, 0.15) 0%, transparent 70%);
+            border-radius: 50%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        body::after {
+            content: '';
+            position: absolute;
+            bottom: -10%;
+            right: 10%;
+            width: 30vw;
+            height: 30vw;
+            background: radial-gradient(circle, rgba(255, 107, 107, 0.1) 0%, transparent 70%);
+            border-radius: 50%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .hero {
+            text-align: center;
+            margin-bottom: 60px;
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .hero h1 {
+            font-size: 64px;
+            font-weight: 800;
+            margin-bottom: 15px;
+            background: linear-gradient(90deg, #6c63ff, #ff6b6b);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -1px;
+        }
+
+        .hero p {
+            color: #b0b5c9;
+            font-size: 20px;
+            font-weight: 300;
+        }
+
+        .upload-box {
+            background: rgba(26, 29, 41, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 50px;
+            border-radius: 30px;
+            margin-bottom: 50px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            animation: fadeInUp 0.8s ease-out 0.2s both;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .drop-zone {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 250px;
+            border: 2px dashed rgba(108, 99, 255, 0.5);
+            background: rgba(108, 99, 255, 0.03);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            transition: all 0.4s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .drop-zone:hover {
+            background: rgba(108, 99, 255, 0.08);
+            border-color: #847dff;
+            transform: scale(1.01);
+        }
+
+        .drop-zone.dragover {
+            background: rgba(108, 99, 255, 0.15);
+            border-color: #ff6b6b;
+            transform: scale(1.02);
+        }
+
+        .drop-zone h2 {
+            margin-bottom: 15px;
+            font-size: 28px;
+            font-weight: 600;
+        }
+
+        .drop-zone p {
+            color: #8a91aa;
+            margin-bottom: 25px;
+            font-size: 16px;
+        }
+
+        input[type=file] {
+            display: none;
+        }
+
+        button {
+            background: linear-gradient(135deg, #6c63ff 0%, #5a52d5 100%);
+            color: white;
+            border: none;
+            padding: 14px 32px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 20px rgba(108, 99, 255, 0.3);
+        }
+
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 25px rgba(108, 99, 255, 0.5);
+            background: linear-gradient(135deg, #847dff 0%, #6c63ff 100%);
+        }
+
+        .result-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 40px;
+            animation: fadeInUp 0.8s ease-out 0.4s both;
+        }
+
+        .card {
+            background: rgba(26, 29, 41, 0.6);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 25px;
+            border-radius: 24px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            animation: fadeInUp 0.8s ease-out 0.4s both;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.3);
+        }
+
+        .card h2 {
+            margin-bottom: 20px;
+            font-size: 22px;
+            font-weight: 600;
+            color: #e2e8f0;
+        }
+
+        .card img {
+            width: 100%;
+            border-radius: 16px;
+            display: block;
+        }
+
+        textarea {
+            width: 100%;
+            height: 300px;
+            background: rgba(15, 17, 23, 0.8);
+            color: #f8fafc;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 25px;
+            border-radius: 16px;
+            font-size: 16px;
+            font-family: 'Outfit', sans-serif;
+            resize: none;
+            line-height: 1.7;
+            transition: border-color 0.3s ease;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #6c63ff;
+        }
+
+        .text-actions {
+            margin-top: 25px;
+            display: flex;
+            gap: 15px;
+        }
+
+        .error-text {
+            color: #ff6b6b;
+            margin-top: 20px;
+            font-size: 16px;
+            font-weight: 600;
+            background: rgba(255, 107, 107, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #ff6b6b;
+        }
+
+        .footer {
+            margin-top: 80px;
+            text-align: center;
+            color: #64748b;
+            font-size: 14px;
+            animation: fadeIn 1s ease-in 1s both;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @media(max-width:1000px) {
+            .result-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .hero h1 {
+                font-size: 48px;
+            }
+
+            .upload-box {
+                padding: 30px;
+            }
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <div class="container">
+
+        <div class="hero">
+
+            <h1>Text Extractor AI</h1>
+
+            <p>
+                Upload handwritten images and extract text instantly
+            </p>
+
+        </div>
+
+        <div class="upload-box">
+
+            <form id="uploadForm" action="/upload" method="POST" enctype="multipart/form-data">
+
+                <label class="drop-zone" id="dropZone">
+
+                    <h2>Upload Image</h2>
+
+                    <p>
+                        Drag & Drop image here
+                    </p>
+
+                    <button type="button">
+                        Choose File
+                    </button>
+
+                    <input type="file" name="image" id="fileInput" required>
+
+                </label>
+
+            </form>
+
+        </div>
+
+        {% if extracted_text %}
+
+        <div class="result-grid" id="resultSection">
+
+            <!-- ORIGINAL IMAGE -->
+            <div class="card">
+
+                <h2>Original Image</h2>
+
+                <img src="{{ url_for('static', filename='uploads/' + image_file) }}">
+
+            </div>
+
+            <!-- PROCESSED IMAGE -->
+            <div class="card">
+
+                <h2>AI Reconstructed Image</h2>
+
+                {% if processed_image %}
+
+                <img src="{{ url_for('static', filename='uploads/' + processed_image) }}">
+
+                {% else %}
+
+                <p class="error-text">
+                    OCR processing failed.
+                </p>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+        <!-- EXTRACTED TEXT -->
+        <div class="card" style="margin-top:30px;">
+
+            <h2>Extracted Text</h2>
+
+            <textarea readonly id="extractedText">{{ extracted_text }}</textarea>
+
+            <div class="text-actions">
+
+                <button onclick="copyText()">
+                    Copy Text
+                </button>
+
+                {% if processed_image %}
+
+                <a href="{{ url_for('static', filename='uploads/' + processed_image) }}" download>
+
+                    <button type="button">
+                        Download Enhanced Image
+                    </button>
+
+                </a>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+        {% endif %}
+
+        <div class="footer">
+            Built with Flask, OpenCV & OCR.Space API
+        </div>
+
+    </div>
+
+    <script>
+
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const uploadForm = document.getElementById('uploadForm');
+
+        // Open file explorer
+        dropZone.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        // Auto submit after selecting file
+        fileInput.addEventListener('change', () => {
+            uploadForm.submit();
+        });
+
+        // Drag Over
+        dropZone.addEventListener('dragover', (e) => {
+
+            e.preventDefault();
+
+            dropZone.classList.add('dragover');
+
+        });
+
+        // Drag Leave
+        dropZone.addEventListener('dragleave', () => {
+
+            dropZone.classList.remove('dragover');
+
+        });
+
+        // Drop File
+        dropZone.addEventListener('drop', (e) => {
+
+            e.preventDefault();
+
+            dropZone.classList.remove('dragover');
+
+            const files = e.dataTransfer.files;
+
+            fileInput.files = files;
+
+            uploadForm.submit();
+
+        });
+
+        // Copy Text
+        function copyText() {
+
+            const textArea =
+                document.getElementById('extractedText');
+
+            navigator.clipboard.writeText(
+                textArea.value
+            );
+
+            alert("Text copied!");
+
+        }
+
+        // Scroll to results if they exist
+        window.onload = function() {
+            const resultSection = document.getElementById('resultSection');
+            if (resultSection) {
+                resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        };
+
+    </script>
+
+</body>
+
+</html>
