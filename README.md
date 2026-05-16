@@ -54,24 +54,7 @@ python app.py
 
 ---
 
-## Project Structure
 
-```txt
-handwritten-text-extractor/
-│
-├── app.py
-├── ocr_engine.py
-├── requirements.txt
-├── .gitignore
-│
-├── templates/
-│   └── index.html
-│
-├── static/
-│   └── uploads/
-```
-
----
 
 ## Screenshots
 
